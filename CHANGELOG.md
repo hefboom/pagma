@@ -3,6 +3,10 @@
 One entry per tag. A `manifest:` line is a change a descendant's `forge/elections.json`
 needs by hand when crossing that version — `UPDATE.md` applies them in order.
 
+## v0.1.34
+- `README.md` § How it works says why a second harness has a place to go: a skill's text and tools name no harness, and what is specific to one sits in its manifest block and in render's lowering of `tier:`.
+- manifest: none.
+
 ## v0.1.33
 - More than one project folder. The hub found a repo only under `~/dev`, or under the one folder `$FORGE_DEV_ROOT` named. It now searches a list, the dev roots, kept in the manifest as `devRoots`. `just forge dev-roots` prints where the hub is and the roots; `just forge dev-root-exact <dir>` adds a folder, and with `-` after it removes one. A repo is found by folder name in the first root that holds it. With no list the default is still `~/dev`, and `$FORGE_DEV_ROOT` still wins when set.
 - `README.md`: `just forge status` leads the command table, with a sample of its output; the table gains the tier, discover and dev-roots commands; Windows limits are stated at the install; it says that render owns `~/.claude/skills` and removes what the manifest does not list; `sota` is spelled out as state of the art.

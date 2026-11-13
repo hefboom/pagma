@@ -71,7 +71,7 @@ Build the hub yourself. You need `bun`, `just`, `jq`, `fzf` and `git`:
 
 ```bash
 mkdir pagmas-descendant && cd pagmas-descendant && git init && git commit --allow-empty -m init
-git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.33 --squash
+git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.34 --squash
 bash forge/engine/scripts/init.sh          # manifest, starter set, justfile, first render
 just forge status                          # one row per election, LIVE column says ok
 ln -s "$PWD/home/claude/skills" ~/.claude/skills    # and the same for agents and tools
@@ -161,6 +161,12 @@ matches. The storage idea is Homebrew's Cellar; the build step is a compiler's.
 
 A skill in the `global` scope reaches every session. A skill scoped to one repo is
 rendered for that repo alone, and the repo holds a single link to it.
+
+A skill's text and the tools it calls are written once and name no harness. What is
+specific to a harness lives in two places: its block in the manifest (which version is
+live, where it renders, what each tier means there) and the render step, which turns
+`tier: sota` into that harness's own model line. Today only Claude Code is rendered; a
+second harness is a new block in the manifest plus its translation in render.
 
 One consequence to know before you start: `~/.claude/skills` is now a link to output
 that render owns. A skill dropped straight into it is not on the manifest, so the next
