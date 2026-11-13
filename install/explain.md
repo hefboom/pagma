@@ -76,8 +76,8 @@ Explain from these, not from memory.
 - uninstall walks it, so removal is exact and can end on "nothing remains"
 - without it: uninstall has to inspect the machine instead
 
-**the descendant**
-- the hub: the one repo all your skills and agents are managed from
+**the hub**
+- the one repo all your skills and agents are managed from
 - holds every version you write, the manifest of which version is live, and the engine mounted inside
 - a skill made live there is global, or aimed at one repo
 - without it: nowhere for your skills to live, and nothing to choose from

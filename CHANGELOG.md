@@ -3,6 +3,11 @@
 One entry per tag. A `manifest:` line is a change a descendant's `forge/elections.json`
 needs by hand when crossing that version — `UPDATE.md` applies them in order.
 
+## v0.1.32
+- One word for the repo your skills live in: *hub*. The docs, the plan the install shows, the starter skills and the scripts' messages said *descendant*. That word stays in three places: the suggested folder name `~/pagmas-descendant`, the ledger's `descendant` line, and the `examples/descendant/` path. *Rare book* is gone; the scaffold is the template.
+- The template repo `hefboom/pagmas-descendant` is retired. It duplicated `examples/descendant/`, and neither install path used it.
+- manifest: none.
+
 ## v0.1.31
 - A descendant has a scope for itself, `hub`: skills that load only in a session opened in the descendant. `/pagma-update` and `/pagma-uninstall` are its first two, now cellar skills that are versioned, rendered and linked like any other, where before they were plain files in `.claude/skills/`. The install makes a fourth link for it, the descendant's own `.claude/skills`, recorded on the ledger. In the engine the scope was hard-coded under the name `dotfiles`; that name still works.
 - `/pagma-install` is a command file, `.claude/commands/pagma-install.md`. It has to exist before anything is rendered, so it is the one procedure that cannot come out of the cellar.

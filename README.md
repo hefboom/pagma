@@ -54,8 +54,7 @@ where the hub should live and suggests `~/pagmas-descendant`.
 The agent shows you a plan and waits for your go-ahead before it changes anything. Then it:
 
 - installs the tools that are missing (`bun`, `just`, `jq`, `fzf`)
-- sets up your hub: a git repo with the engine inside and a starter set of skills. The
-  docs call the hub a *descendant*
+- sets up your hub: a git repo with the engine inside and a starter set of skills
 - links `~/.claude/skills`, `agents` and `tools` to the hub's output. If you already have
   skills there, it offers to adopt them as `v1.0.0`, and it keeps your original folder
 - writes down everything it created, so that `/pagma-uninstall` can remove exactly that
@@ -64,13 +63,11 @@ The agent shows you a plan and waits for your go-ahead before it changes anythin
 <details>
 <summary>Without an agent, or by hand</summary>
 
-Start from the template, [hefboom/pagmas-descendant](https://github.com/hefboom/pagmas-descendant):
-*Use this template*, then clone it. Or build the hub yourself. You need `bun`, `just`,
-`jq`, `fzf` and `git`:
+Build the hub yourself. You need `bun`, `just`, `jq`, `fzf` and `git`:
 
 ```bash
 mkdir pagmas-descendant && cd pagmas-descendant && git init && git commit --allow-empty -m init
-git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.31 --squash
+git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.32 --squash
 bash forge/engine/scripts/init.sh          # manifest, starter set, justfile, first render
 just forge status                          # one row per election, LIVE column says ok
 ln -s "$PWD/home/claude/skills" ~/.claude/skills    # and the same for agents and tools
@@ -175,10 +172,10 @@ Any other agent can do the same from [`UPDATE.md`](./UPDATE.md) and
 
 ## The name
 
-Pagma is the legendary blacksmith in *Overgeared*. Your hub is his *descendant*: it
-carries the engine inside and takes its updates from it. The scaffold a new hub starts
-from is the *rare book*. Those two nouns are the whole borrowed vocabulary. The commands
-stay plain, and they say `forge` because that is the folder the hub works in.
+Pagma is the legendary blacksmith in *Overgeared*. Your hub descends from him: it carries
+the engine inside and takes its updates from it, which is why its folder is called
+`pagmas-descendant` unless you choose another name. The commands say `forge` because that
+is the folder the hub works in.
 
 ## Docs
 
@@ -188,6 +185,6 @@ stay plain, and they say `forge` because that is the folder the hub works in.
   the three procedures, written for the agent that carries them out.
 - [`CHANGELOG.md`](./CHANGELOG.md): one entry per tag.
 - [`scripts/README.md`](./scripts/README.md): every script and the full manifest contract.
-- [`examples/descendant/`](./examples/descendant/): the rare book, readable in two minutes.
+- [`examples/descendant/`](./examples/descendant/): the template a new hub is copied from, readable in two minutes.
 
 MIT, see [LICENSE](./LICENSE).

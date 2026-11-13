@@ -5,16 +5,16 @@ through the steps in order, run the checks, and stop to ask only where this file
 to. Report at the end with the output of the two verification commands.
 
 Vocabulary: the *engine* is this repository, mounted at `forge/engine/` inside a
-*descendant*, the repo that holds the person's own skills, agents and manifest.
+*hub*, the repo that holds the person's own skills, agents and manifest.
 
 The person may not know these words, so say the thing before the term. pagma needs one
 repository to be the hub that every skill and agent is managed from. The hub holds every
 version the person writes, and the one manifest that says which version is live. From it a
 skill is either global (every session on the machine sees it) or aimed at a single
-repository (only sessions in that repo see it). A repo set up as that hub, a new one or
-one they already have, is a *descendant* of pagma: it carries the engine inside it and
-takes its updates from it. That noun is the only coined word; the act has none, it is
-setting the repo up.
+repository (only sessions in that repo see it). The hub can be a new repo or one they
+already have: it carries the engine inside it and takes its updates from it. Say "hub"
+to the person. The word *descendant* survives in two places only: the suggested folder
+name, `~/pagmas-descendant`, and the ledger's `descendant` line.
 
 ## What to read
 
@@ -48,8 +48,8 @@ jq -nc --arg n bun --arg v installer --arg r 'rm -rf "$HOME/.bun"' '{kind:"dep",
 jq -nc --arg p "$HOME/.config/pagma/env" '{kind:"file",path:$p}' >> "$L"
 jq -nc --arg f "$HOME/.profile" --arg t '[ -f "$HOME/.config/pagma/env" ] && . "$HOME/.config/pagma/env"' '{kind:"line",file:$f,text:$t}' >> "$L"
 jq -nc --arg p "<clone path>" '{kind:"clone",path:$p}' >> "$L"
-jq -nc --arg p "<descendant path>" --argjson i false '{kind:"descendant",path:$p,in_place:$i}' >> "$L"
-jq -nc --arg p "$HOME/.claude/skills" --arg t "<descendant path>/home/claude/skills" '{kind:"symlink",path:$p,target:$t}' >> "$L"
+jq -nc --arg p "<hub path>" --argjson i false '{kind:"descendant",path:$p,in_place:$i}' >> "$L"
+jq -nc --arg p "$HOME/.claude/skills" --arg t "<hub path>/home/claude/skills" '{kind:"symlink",path:$p,target:$t}' >> "$L"
 jq -nc --arg p "$HOME/.claude/skills" --arg k "$HOME/.claude/skills.before-pagma" '{kind:"aside",path:$p,kept:$k}' >> "$L"
 ```
 
@@ -115,7 +115,7 @@ Files pagma writes
   the line                        [ -f "$HOME/.config/pagma/env" ] && . "$HOME/.config/pagma/env"
   ~/.config/pagma/ledger.jsonl    new: the record of everything in this plan
 
-Descendant: the hub repo all your skills and agents are managed from
+Hub: the repo all your skills and agents are managed from
   ~/pagmas-descendant             new git repo, engine <version> at forge/engine/
   holds                           every version you write, and the manifest of what is live
   serves                          global skills for every session, or skills for one repo
@@ -138,7 +138,7 @@ When you say go ahead
 
 The values are an example; the labels and their order are fixed. A script that does not
 match the baseline says so on its header line, with each difference on its own line under
-it. In the bootstrap row of step 2 the descendant line shows the suggested directory, and
+it. In the bootstrap row of step 2 the hub line shows the suggested directory, and
 "Change the plan" below is where the person moves it: do not ask about it again later.
 An explanation has a fixed layout of its own, in `install/explain.md`.
 
@@ -162,7 +162,7 @@ the last:
 |---|---|
 | **Go ahead** (recommended) | start step 1 |
 | **Explain first** | ask which piece they want explained: one tool, one row of the plan, or all of it. Answer from `install/explain.md`, in its layout: one block per piece, never a paragraph. Then ask the four choices again. Do not repeat the plan; it is still above |
-| **Change the plan** | a different directory for the descendant, or leave the rc lines to them (below). Show the changed plan and the four choices again |
+| **Change the plan** | a different directory for the hub, or leave the rc lines to them (below). Show the changed plan and the four choices again |
 | **Stop** | change nothing, and say that nothing was changed |
 
 Shell startup files and `~/.claude` are the person's. A harness may refuse to touch them
@@ -196,7 +196,7 @@ is missing or below 1.31) come from their projects' installer scripts. Never pip
 a shell unread: `install/installers.md` says how each is fetched, read and run.
 
 Both land outside the default `PATH`. pagma owns one shell file for that and for the
-descendant's location, sourced by one guarded line per rc file — the rustup pattern
+hub's location, sourced by one guarded line per rc file — the rustup pattern
 (`~/.cargo/env`). Write `~/.config/pagma/env` (create the directory) with exactly:
 
 ```bash
@@ -204,7 +204,7 @@ descendant's location, sourced by one guarded line per rc file — the rustup pa
 export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"
 ```
 
-`FORGE_ROOT` is added to it in step 2, once the descendant's path is known. Then add this
+`FORGE_ROOT` is added to it in step 2, once the hub's path is known. Then add this
 line, alone with no blank line around it and only if it is not already there (grep first), to `~/.profile` and to the **top** of
 `~/.bashrc` (Ubuntu's `.bashrc` returns early for non-interactive shells, so a line below
 that guard never reaches a tool's shell), or to `~/.zprofile` and `~/.zshrc` on macOS:
@@ -232,35 +232,35 @@ non-blank line one of them added to a startup file is a `line` entry with `by`, 
 that is plainly its own outside its directory (a completions file) is a `file` entry with
 `by`. Skip what the ledger already covers.
 
-## 2. The descendant
+## 2. The hub
 
 Decide which case you are in by looking at the current directory:
 
 | You see | Case | Do |
 |---|---|---|
-| `VERSION` and `scripts/render.ts` in the directory itself, origin `hefboom/pagma` | a clone of the engine repo: the bootstrap case | never mount the engine into itself. **Ask where the descendant should live.** Suggest `~/pagmas-descendant`; offer an existing repo the person already keeps their shell or editor config in, which becomes the descendant in place. Create the directory if needed, then continue with the row that matches it, running every later command in that directory (`cd` or absolute paths; your session stays rooted in the clone). Record a `clone` line for the directory you are standing in. In step 5, add the cleanup line. |
-| `forge/elections.json` and `forge/engine/VERSION` | an existing descendant (a clone of a template, or a second machine) | nothing here, go to step 3 |
+| `VERSION` and `scripts/render.ts` in the directory itself, origin `hefboom/pagma` | a clone of the engine repo: the bootstrap case | never mount the engine into itself. **Ask where the hub should live.** Suggest `~/pagmas-descendant`; offer an existing repo the person already keeps their shell or editor config in, which becomes the hub in place. Create the directory if needed, then continue with the row that matches it, running every later command in that directory (`cd` or absolute paths; your session stays rooted in the clone). Record a `clone` line for the directory you are standing in. In step 5, add the cleanup line. |
+| `forge/elections.json` and `forge/engine/VERSION` | an existing hub (a clone of the person's own, on a second machine) | nothing here, go to step 3 |
 | `forge/engine/VERSION` but no `forge/elections.json` | engine mounted, not yet scaffolded | `bash forge/engine/scripts/init.sh`, go to step 4 |
-| neither, inside a git repo | a repo that should become a descendant | mount the engine (below), then `init.sh` |
+| neither, inside a git repo | a repo that should become a hub | mount the engine (below), then `init.sh` |
 | neither, not a git repo | nothing yet | `git init && git commit --allow-empty -m init`, then mount the engine, then `init.sh` |
 
 Mount the engine as a git subtree at a pinned tag, never a clone or a fork:
 
 ```bash
-git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.31 --squash
+git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.32 --squash
 ```
 
-Check: `cat forge/engine/VERSION` prints `0.1.31`.
+Check: `cat forge/engine/VERSION` prints `0.1.32`.
 
-Now record the descendant's location: append `export FORGE_ROOT="<absolute path of the
-descendant>"` to `~/.config/pagma/env` (replace an existing `FORGE_ROOT` line), and export
-it in the current shell. The engine finds the descendant by walking up from its own
+Now record the hub's location: append `export FORGE_ROOT="<absolute path of the
+hub>"` to `~/.config/pagma/env` (replace an existing `FORGE_ROOT` line), and export
+it in the current shell. The engine finds the hub by walking up from its own
 location, but skills that run from any cwd (the bundled `prime-forge`) need the variable.
 
 Ledger: one `descendant` line, always, whichever row you came through: it is where pagma
 lives on this machine. `in_place` is `true` when the directory is the person's own repo
 holding things other than pagma (their config repo), `false` when it exists only to be the
-descendant (created now, empty before, or a clone of the template). Uninstall never removes
+hub (created now, empty before, or a clone of the person's own). Uninstall never removes
 an in-place directory, only pagma's paths inside it.
 
 ## 3. Build
@@ -272,10 +272,10 @@ just forge render       # writes the bin trees under home/
 
 ## 4. Link the harness to the bin trees
 
-The engine renders into `home/claude/{skills,agents,tools}` inside the descendant and
+The engine renders into `home/claude/{skills,agents,tools}` inside the hub and
 never writes outside it. The harness reads `~/.claude/{skills,agents,tools}`. One
 symlink per directory connects them, three in all: `skills`, `agents`, `tools` (render
-creates all three roots, empty or not). A fourth, below, is the descendant's own. For each:
+creates all three roots, empty or not). A fourth, below, is the hub's own. For each:
 
 - `~/.claude/<dir>` does not exist → `ln -s "$PWD/home/claude/<dir>" ~/.claude/<dir>`
 - it is a real directory and empty → `rmdir ~/.claude/<dir>`, which refuses a directory with content, then link as above
@@ -284,14 +284,14 @@ creates all three roots, empty or not). A fourth, below, is the descendant's own
 
 Check: `readlink ~/.claude/skills` prints a path ending in `home/claude/skills`.
 
-Then the descendant's own link, the fourth. Skills in the `hub` scope are for sessions
-opened in the descendant itself (`/pagma-update` and `/pagma-uninstall` are the first
+Then the hub's own link, the fourth. Skills in the `hub` scope are for sessions
+opened in the hub itself (`/pagma-update` and `/pagma-uninstall` are the first
 two). They render into `home/claude/repos/hub/skills`, and such a session reads
-`.claude/skills` in the descendant's root:
+`.claude/skills` in the hub's root:
 
 - `.claude/skills` does not exist → `mkdir -p .claude && ln -s "$PWD/home/claude/repos/hub/skills" .claude/skills`
 - it is already a link → `readlink` it. That path: nothing to do. Another: show the person, ask before repointing
-- it is a real directory → the repo keeps skills of its own there. Leave it, make no link, and say that `/pagma-update` and `/pagma-uninstall` are not slash commands in this descendant: the same two are `forge/engine/UPDATE.md` and `forge/engine/UNINSTALL.md`, read and followed
+- it is a real directory → the repo keeps skills of its own there. Leave it, make no link, and say that `/pagma-update` and `/pagma-uninstall` are not slash commands in this hub: the same two are `forge/engine/UPDATE.md` and `forge/engine/UNINSTALL.md`, read and followed
 
 Check: `readlink .claude/skills` prints a path ending in `home/claude/repos/hub/skills`,
 and `ls .claude/skills` lists `pagma-update` and `pagma-uninstall`.
@@ -318,10 +318,10 @@ L="$HOME/.config/pagma/ledger.jsonl"; awk '!seen[$0]++' "$L" > "$L.tmp" && mv "$
 ```
 
 The scaffold is
-uncommitted; offer to commit it (`git add -A && git commit -m "pagma: descendant"`). If you
+uncommitted; offer to commit it (`git add -A && git commit -m "pagma: hub"`). If you
 started in a clone of the engine (the bootstrap row), say that the clone is now redundant,
-since the descendant carries its own copy of the engine, and give the person the line to
-run after they open a session in the descendant: `rm -rf <path of the clone>`. Do not run
+since the hub carries its own copy of the engine, and give the person the line to
+run after they open a session in the hub: `rm -rf <path of the clone>`. Do not run
 it yourself; it is the directory your session is in. Then tell the person:
 a new session will have the starter set (`/hello`, `/prime-forge`, `/systems-architect`
 and the six tier agents; `README.md` § Starter set says what each is for). `/prime-forge`
@@ -334,7 +334,7 @@ just forge elect-exact claude-code/global/<name> v1.0.0
 ```
 
 End with the one recommendation, in the same one-fact-per-line shape: before handing it
-all to an agent, drive it by hand once, in a terminal inside the descendant.
+all to an agent, drive it by hand once, in a terminal inside the hub.
 
 ```text
 By hand, once

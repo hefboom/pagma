@@ -1,9 +1,9 @@
-# The hub scope on an older descendant
+# The hub scope on an older hub
 
 Part of `UPDATE.md`: read this when the v0.1.31 `Machine:` line of the changelog sends
-you here. Run it in the descendant's root, after that version's `manifest:` step.
+you here. Run it in the hub's root, after that version's `manifest:` step.
 
-Before v0.1.31 a descendant carried three pointer skills as plain files in
+Before v0.1.31 a hub carried three pointer skills as plain files in
 `.claude/skills/`. From v0.1.31 `/pagma-update` and `/pagma-uninstall` are cellar skills
 in the `hub` scope, rendered and linked like any other skill, and `/pagma-install` is the
 command file `.claude/commands/pagma-install.md`, which the re-plant step of `UPDATE.md`

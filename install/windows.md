@@ -49,7 +49,7 @@ pass before a restart because a child shell inherits the session's old `PATH`:
 export PATH="$PATH:$(cygpath -u -p "$(powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')" | tr -d '\r')")";
 ```
 
-After step 2, `bash -lc 'echo "$FORGE_ROOT"'` prints the descendant's path.
+After step 2, `bash -lc 'echo "$FORGE_ROOT"'` prints the hub's path.
 
 **`FORGE_ROOT`.** In step 2, after the line in the env file, store the same location as
 a user variable: every program started afterwards inherits it, whichever terminal
@@ -59,7 +59,7 @@ Bash, bun and PowerShell all read:
 
 ```bash
 powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('FORGE_ROOT','User')" | tr -d '\r'
-PAGMA_ROOT=$(cygpath -m "<descendant path>") \
+PAGMA_ROOT=$(cygpath -m "<hub path>") \
   powershell -NoProfile -Command "[Environment]::SetEnvironmentVariable('FORGE_ROOT', \$env:PAGMA_ROOT, 'User')"
 ```
 
@@ -87,7 +87,7 @@ PAGMA_LINK=$(cygpath -w "$HOME/.claude/skills") PAGMA_TARGET=$(cygpath -w "$PWD/
 readlink "$HOME/.claude/skills"
 ```
 
-The descendant's own link, the fourth of step 4, is a junction as well: the same
+The hub's own link, the fourth of step 4, is a junction as well: the same
 command with `PAGMA_LINK=$(cygpath -w "$PWD/.claude/skills")` and
 `PAGMA_TARGET=$(cygpath -w "$PWD/home/claude/repos/hub/skills")`, after `mkdir -p .claude`.
 

@@ -1,5 +1,5 @@
 ---
-description: Set up this pagma descendant on this machine — install missing prerequisites, build the engine, render the bin trees, link the harness, verify. Use on a fresh clone or a new machine.
+description: Set up this pagma hub on this machine — install missing prerequisites, build the engine, render the bin trees, link the harness, verify. Use on a fresh clone or a new machine.
 allowed-tools: Read, Bash
 ---
 

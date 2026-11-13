@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# forge init — scaffold a descendant around this engine (the rare book).
+# forge init — scaffold a hub around this engine, from the template in examples/descendant/.
 #
 # Runs once, directly, before `just forge` exists in the new repo:
 #   git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.0 --squash
 #   bash forge/engine/scripts/init.sh
 #
 # Target is $FORGE_ROOT if set, else the engine's grandparent — the engine must sit at
-# <descendant>/forge/engine/. Copies examples/descendant/ in (never overwriting a file
+# <hub>/forge/engine/. Copies examples/descendant/ in (never overwriting a file
 # that exists), pins the manifest to this engine's VERSION, installs bun deps, renders.
-# Touches nothing outside the descendant: linking ~/.claude/* at the bin trees is yours.
+# Touches nothing outside the hub: linking ~/.claude/* at the bin trees is yours.
 set -euo pipefail
 
 ENGINE=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -16,7 +16,7 @@ if [[ -n ${FORGE_ROOT:-} ]]; then
   ROOT=$(cd "$FORGE_ROOT" && pwd)
 else
   [[ $(basename "$ENGINE") == engine && $(basename "$(dirname "$ENGINE")") == forge ]] \
-    || { echo "forge init: engine is at $ENGINE, expected <descendant>/forge/engine — set FORGE_ROOT to the descendant" >&2; exit 1; }
+    || { echo "forge init: engine is at $ENGINE, expected <hub>/forge/engine — set FORGE_ROOT to the hub" >&2; exit 1; }
   ROOT=$(cd "$ENGINE/../.." && pwd)
 fi
 
@@ -36,7 +36,7 @@ if [[ $(printf '%s\n%s\n' "$just_floor" "$just_have" | sort -V | head -1) != "$j
   exit 1
 fi
 
-[[ -e $ROOT/forge/elections.json ]] && { echo "forge init: $ROOT/forge/elections.json exists — already a descendant" >&2; exit 1; }
+[[ -e $ROOT/forge/elections.json ]] && { echo "forge init: $ROOT/forge/elections.json exists — already a hub" >&2; exit 1; }
 
 template=$ENGINE/examples/descendant
 copied=() kept=()
@@ -55,7 +55,7 @@ jq --arg v "$version" '.engine = $v' "$manifest" > "$manifest.tmp" && mv "$manif
 (cd "$ENGINE" && bun install --silent)
 FORGE_ROOT=$ROOT bun run "$ENGINE/scripts/render.ts" >/dev/null
 
-echo "forge init: descendant at $ROOT, engine $version"
+echo "forge init: hub at $ROOT, engine $version"
 printf '  wrote  %s\n' ${copied[@]+"${copied[@]}"}
 for k in ${kept[@]+"${kept[@]}"}; do
   echo "  kept   $k (exists — merge by hand against examples/descendant/$k)"
@@ -66,5 +66,5 @@ Next:
   just forge status                       the resolution table
   link ~/.claude/skills to $ROOT/home/claude/skills   so the harness reads the bin trees (also agents/ and tools/; INSTALL.md § 4)
   cp -R forge/skills/global/hello/v1.0.0 forge/skills/global/<name>/v1.0.0   author, then elect-exact
-  export FORGE_ROOT=$ROOT                  in ~/.config/pagma/env, so skills find this descendant from any cwd (INSTALL.md § 2)
+  export FORGE_ROOT=$ROOT                  in ~/.config/pagma/env, so skills find this hub from any cwd (INSTALL.md § 2)
 MSG

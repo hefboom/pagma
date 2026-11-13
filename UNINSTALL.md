@@ -31,7 +31,7 @@ Anything not on the ledger is not pagma's. Do not offer to remove it.
 
 ## 2. The harness links
 
-For each `symlink` entry, `readlink` its `path`. One of them may be the descendant's own
+For each `symlink` entry, `readlink` its `path`. One of them may be the hub's own
 `.claude/skills`, which this very procedure was loaded through: removing it is fine, the
 text is already in your context.
 
@@ -40,7 +40,7 @@ text is already in your context.
 
 An install from v0.1.19 to v0.1.21 may have linked skills one by one. List those links
 too, marked as inferred: every link directly under `~/.claude/skills` whose `readlink`
-points inside the descendant's `home/claude/skills/`. Its target says it is pagma's.
+points inside the hub's `home/claude/skills/`. Its target says it is pagma's.
 
 Ask, then `rm` the listed links (the links only, never `rm -r`). If an entry has a
 `replaced` field, offer to point the link back: `ln -s "<replaced>" "<path>"`. Nothing
@@ -51,12 +51,12 @@ Then each `aside` entry: a directory the install set aside to make room for the 
 Once the link at its `path` is gone and nothing else is there, put it back with
 `mv "<kept>" "<path>"`. It returns exactly as it was before pagma, and that counts as
 removed. Skills that were adopted come back in their original form; versions written
-since are in the descendant's cellar (stage 6). If something is at `path`, leave both
+since are in the hub's cellar (stage 6). If something is at `path`, leave both
 where they are and say so.
 
-The Claude app's `synced/` folder may sit in the descendant's `home/claude/skills/`,
+The Claude app's `synced/` folder may sit in the hub's `home/claude/skills/`,
 written there through the link. If no `aside` entry brings one back, move it out before
-the descendant goes: `mkdir "$HOME/.claude/skills"`, then `mv` it to
+the hub goes: `mkdir "$HOME/.claude/skills"`, then `mv` it to
 `~/.claude/skills/synced`. It is the app's, and its built-in skills depend on it.
 
 On Windows the links are junctions (`install/windows.md`). `readlink` reads one like
@@ -136,13 +136,13 @@ If the path is gone: already gone. If it is there, check it is still an engine c
 (`VERSION` and `scripts/render.ts` at its root), ask, and `rm -rf` it. If your session is
 standing in it, do not run that yourself: give the person the line.
 
-## 6. The descendant
+## 6. The hub
 
 The `descendant` entry. It holds the person's manifest and every skill version they wrote,
 so this is the one question that needs an explicit answer naming the path. What you may
 offer depends on `in_place`.
 
-**`in_place: false`** — the directory exists only to be the descendant. Ask whether to
+**`in_place: false`** — the directory exists only to be the hub. Ask whether to
 remove it, naming the path, and act only on a clear yes. The removal itself happens in
 stage 7. If they want to keep their skills, the directory stays as plain readable files:
 offer to remove just the regenerated output (`home/claude/{skills,agents,tools}`,
@@ -170,7 +170,7 @@ lines at count 0, the user variable empty (Windows), removed tools no longer res
 directories absent.
 
 The ledger ends holding exactly what pagma still has on the machine. A dependency or a
-descendant the person chose to keep is theirs from now on and comes off the list, a tool
+hub the person chose to keep is theirs from now on and comes off the list, a tool
 together with its `by` entries. If
 that leaves entries (changed, or the person stopped partway), rewrite the ledger to those
 lines and say that a later uninstall finishes the job.
@@ -179,12 +179,12 @@ If it leaves none, close with one last line. Include the `rm -rf` and its check 
 stage 6 yes. The line checks its own result, so whoever runs it sees the outcome:
 
 ```bash
-cd "$HOME" && rm -rf "<descendant path>" && rm -f "$HOME/.config/pagma/ledger.jsonl" && rmdir "$HOME/.config/pagma" && [ ! -e "<descendant path>" ] && [ ! -e "$HOME/.config/pagma" ] && echo "pagma: nothing remains on this machine"
+cd "$HOME" && rm -rf "<hub path>" && rm -f "$HOME/.config/pagma/ledger.jsonl" && rmdir "$HOME/.config/pagma" && [ ! -e "<hub path>" ] && [ ! -e "$HOME/.config/pagma" ] && echo "pagma: nothing remains on this machine"
 ```
 
-If your session is standing in the descendant, which it normally is, do not run this
+If your session is standing in the hub, which it normally is, do not run this
 yourself: it deletes the directory you are working in. Give the line to the person, and in
-the report mark the descendant and the ledger as closed by that line. Otherwise run it.
+the report mark the hub and the ledger as closed by that line. Otherwise run it.
 
 ## 8. Report
 
@@ -192,7 +192,7 @@ One row per ledger entry: what it was, where, and its final state. Then:
 
 - If every row is `removed` or `already gone`, say so in these words: **nothing pagma
   created remains on this machine.**
-- If the closing line is the person's to run, say that the descendant and the ledger are
+- If the closing line is the person's to run, say that the hub and the ledger are
   all that is left, and that the line prints that same sentence when it has succeeded.
 - Otherwise list what remains and why (kept by the person, or changed since install).
 

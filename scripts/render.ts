@@ -14,7 +14,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The descendant root: the repo whose forge/elections.json this render serves.
+// The hub root: the repo whose forge/elections.json this render serves.
 // $FORGE_ROOT names it outright; otherwise it is the nearest ancestor of this script
 // that holds forge/elections.json. Anchored on the manifest, not on .git or a bin-tree
 // name, so the engine can live anywhere (forge/scripts/ today, a subtree tomorrow) and
@@ -25,7 +25,7 @@ function repoRoot(): string {
   while (true) {
     if (fs.existsSync(path.join(dir, "forge", "elections.json"))) return dir;
     const parent = path.dirname(dir);
-    if (parent === dir) throw new Error("Could not locate the descendant root (no ancestor holds forge/elections.json; set FORGE_ROOT)");
+    if (parent === dir) throw new Error("Could not locate the hub root (no ancestor holds forge/elections.json; set FORGE_ROOT)");
     dir = parent;
   }
 }
@@ -123,7 +123,7 @@ interface Harness {
 
 interface Manifest {
   /** The engine version this manifest was written against (`v0.0.1`), checked at
-      every run against the engine's own VERSION file: a descendant pins pagma. */
+      every run against the engine's own VERSION file: a hub pins pagma. */
   engine?: string;
   harnesses: Record<string, Harness>;
 }

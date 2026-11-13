@@ -1,6 +1,6 @@
 ---
 name: pagma-update
-description: Upgrade this descendant's pagma engine — compare the pinned version with the newest upstream tag, show the changelog between, ask, then pull the subtree, re-pin, apply the manifest steps, render and verify.
+description: Upgrade this hub's pagma engine — compare the pinned version with the newest upstream tag, show the changelog between, ask, then pull the subtree, re-pin, apply the manifest steps, render and verify.
 allowed-tools: Read, Bash
 tier: session
 ---

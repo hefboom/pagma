@@ -1,12 +1,12 @@
 # UPDATE.md — for the agent
 
-You are a coding agent upgrading the **pagma** engine inside a descendant. Read the
+You are a coding agent upgrading the **pagma** engine inside a hub. Read the
 whole file first. Ask before pulling; nothing before that step changes anything.
 
-## 1. Where this descendant is
+## 1. Where this hub is
 
 - `jq -r .engine forge/elections.json` — the pinned version.
-- `cat forge/engine/VERSION` — the mounted engine. Normally equal to the pin without the `v`; if not, say so and stop, the descendant is mid-upgrade.
+- `cat forge/engine/VERSION` — the mounted engine. Normally equal to the pin without the `v`; if not, say so and stop, the hub is mid-upgrade.
 - Prerequisites: `git`, `bun`, `just` (1.31+), `jq`, `fzf`, `python3` still resolve. If one is missing, follow step 1 of `forge/engine/INSTALL.md` first.
 - The working tree is committed (`git status --short` empty). A subtree pull refuses otherwise; ask the person to commit or stash.
 
@@ -35,9 +35,9 @@ git subtree pull --prefix forge/engine https://github.com/hefboom/pagma.git <new
 jq --arg v <newest-tag> '.engine = $v' forge/elections.json > forge/elections.json.tmp && mv forge/elections.json.tmp forge/elections.json
 ```
 
-Then re-plant the rare book: for every file under `forge/engine/examples/descendant/.claude/`
+Then re-plant the template's own files: for every file under `forge/engine/examples/descendant/.claude/`
 and `forge/engine/examples/descendant/AGENTS.md`, copy it to the same relative path in the
-descendant **only if that path is absent** (new skills such as `/pagma-update` arrive this
+hub **only if that path is absent** (new skills such as `/pagma-update` arrive this
 way; an existing file is the person's and is never overwritten). List what was added.
 
 ```bash
@@ -49,13 +49,13 @@ done
 Then every `manifest:` line from step 2, oldest version first. A jq expression is applied
 the same way as the pin line above; a shell command is run as written. Skip a step whose
 effect is already present (the key exists, the symlink exists). A step that creates
-something on the machine (a symlink, a file outside the descendant) also gets its line in
+something on the machine (a symlink, a file outside the hub) also gets its line in
 `~/.config/pagma/ledger.jsonl`, written as `forge/engine/INSTALL.md` § The ledger shows, so
 uninstall knows about it.
 
 Then every `bundle:` line from step 2. It names starter skills and agents that are new in
 the template, and it is an offer: list them, ask, and add only what the person wants. A
-name already in the descendant's cellar is skipped. Items joined by "with" go together
+name already in the hub's cellar is skipped. Items joined by "with" go together
 or not at all: a skill does not render without the tool it declares. For each yes, copy it out of the
 template and take its election from the template's manifest:
 
@@ -70,7 +70,7 @@ jq --slurpfile t "$T/elections.json" --arg n <name> '.harnesses["claude-code"].a
 # a tool
 mkdir -p forge/tools && cp -R "$T/tools/<name>" forge/tools/
 jq --slurpfile t "$T/elections.json" --arg n <name> '.harnesses["claude-code"].tools[$n] = $t[0].harnesses["claude-code"].tools[$n]' "$M" > "$M.tmp" && mv "$M.tmp" "$M"
-# new variants of an agent the descendant already has: its own variants win
+# new variants of an agent the hub already has: its own variants win
 jq --slurpfile t "$T/elections.json" --arg n <name> '.harnesses["claude-code"].agents[$n].variants = ($t[0].harnesses["claude-code"].agents[$n].variants + .harnesses["claude-code"].agents[$n].variants)' "$M" > "$M.tmp" && mv "$M.tmp" "$M"
 ```
 

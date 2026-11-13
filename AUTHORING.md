@@ -1,11 +1,11 @@
-# Authoring in a descendant
+# Authoring in a hub
 
 How the forge works once it is installed, and how to write, version and release a skill
 in it. Written to be read by section: the starter skill `prime-forge` loads the sections
 it cites with the `doc-section` tool, so the headings here are addresses. Renaming one
 is a change to announce in `CHANGELOG.md`.
 
-Every command runs from the descendant's root. From anywhere else it is
+Every command runs from the hub's root. From anywhere else it is
 `just -f "$FORGE_ROOT/justfile" forge <verb>`.
 
 ## Layout
@@ -170,7 +170,7 @@ table prints, and exits 0, with a broken election in it.
 | Scope | Renders to |
 |---|---|
 | `global` | every session: `home/claude/skills/` |
-| `hub` | sessions opened in the descendant itself: `home/claude/repos/hub/skills/`, which the descendant's own `.claude/skills` links to. `/pagma-update` and `/pagma-uninstall` live here |
+| `hub` | sessions opened in the hub itself: `home/claude/repos/hub/skills/`, which the hub's own `.claude/skills` links to. `/pagma-update` and `/pagma-uninstall` live here |
 | a repo's folder name | that repo only. `just forge discover-exact <repo>` sets it up in one step for a repo under `$FORGE_DEV_ROOT` (default `~/dev`): it declares the root in the manifest, renders, and makes the one link the repo needs |
 | `keg-only` | nowhere. The versions are kept and nothing is rendered |
 
