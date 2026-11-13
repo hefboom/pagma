@@ -16,6 +16,11 @@ all:
 install:
     bun install
 
+# Scaffold a descendant around this engine (the rare book): copy examples/descendant/ into $FORGE_ROOT (else the engine's grandparent), pin the manifest to this VERSION, bun install, first render. Refuses an existing forge/elections.json. Runs directly too: bash forge/engine/scripts/init.sh
+[group('build')]
+init:
+    @bash scripts/init.sh
+
 # Render bin trees from forge/elections.json. Flags: --check (drift gate, no writes), --out <dir>, --manifest <path> (read the manifest from <path> instead; cellar + roots still resolve against the repo root), --status (resolution table, no writes), --json (machine-readable status + available versions, no writes)
 [group('build')]
 render *args:

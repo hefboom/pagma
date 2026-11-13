@@ -22,6 +22,19 @@ share one write path. Anything that must run unattended calls `elect-core.sh`.
 
 For the cellar/render model this implements, see [`../README.md`](../README.md).
 
+## `init.sh`
+
+The rare book. Scaffolds a descendant around this engine, once, before `just forge`
+exists in the new repo — so it is run directly: `bash forge/engine/scripts/init.sh`
+(the `init` recipe is the same script for an engine already mounted). Target is
+`$FORGE_ROOT`, else the engine's grandparent (the engine must sit at
+`<descendant>/forge/engine/`). Checks the prerequisites (bun, just, jq, fzf, python3),
+refuses an existing `forge/elections.json`, copies `../examples/descendant/` in without
+overwriting anything that exists (a kept file is reported with the template to merge
+from), rewrites the copied manifest's `engine` pin from `../VERSION`, runs `bun install`
+in the engine and a first render. Writes nothing outside the descendant — linking
+`~/.claude/*` at the bin trees is the operator's step, printed as the next action.
+
 ## `render.ts`
 
 Manifest → bin tree. For every skill election it resolves
