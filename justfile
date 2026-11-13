@@ -16,7 +16,7 @@ all:
 install:
     bun install
 
-# Scaffold a descendant around this engine (the rare book): copy examples/descendant/ into $FORGE_ROOT (else the engine's grandparent), pin the manifest to this VERSION, bun install, first render. Refuses an existing forge/elections.json. Runs directly too: bash forge/engine/scripts/init.sh
+# Scaffold a hub around this engine: copy the template, examples/descendant/, into $FORGE_ROOT (else the engine's grandparent), pin the manifest to this VERSION, bun install, first render. Refuses an existing forge/elections.json. Runs directly too: bash forge/engine/scripts/init.sh
 [group('build')]
 init:
     @bash scripts/init.sh
@@ -41,7 +41,7 @@ view:
 show label:
     @bash scripts/view.sh --show {{label}}
 
-# Derived edge ledger: every `just` call in each elected skill's body, resolved to its target justfile (an explicit -f path, the scope's repo under $FORGE_DEV_ROOT, or dotfiles) and checked against that justfile's `just --dump`. Read-only, derived from the bodies — never declared, so the ledger cannot drift from the text. CHECK: ok / missing / unchecked (no justfile reachable) / - (listing only). Exit 0 always.
+# Derived edge ledger: every `just` call in each elected skill's body, resolved to its target justfile (an explicit -f path, the scope's repo in the dev roots, or the hub) and checked against that justfile's `just --dump`. Read-only, derived from the bodies — never declared, so the ledger cannot drift from the text. CHECK: ok / missing / unchecked (no justfile reachable) / - (listing only). Exit 0 always.
 [group('inspect')]
 edges:
     @bash scripts/edges.sh
@@ -96,20 +96,30 @@ yank-exact label version:
 unyank-exact label version:
     @bash scripts/yank-core.sh {{label}} {{version}} --undo
 
-# Onboard a repo-targeted scope: scan $FORGE_DEV_ROOT (default ~/dev) for git repos, annotated new / declared-but-unlinked / mislinked / linked, fzf pick one, then declare root + render + link. Arg seeds the query. Needs a terminal — see discover-exact.
+# Onboard a repo-targeted scope: scan the dev roots (see dev-roots) for git repos, annotated new / declared-but-unlinked / mislinked / linked, fzf pick one, then declare root + render + link. Arg seeds the query. Needs a terminal — see discover-exact.
 [group('scope')]
 discover *args:
     @bash scripts/discover.sh {{args}}
 
-# Onboard a repo non-interactively: discover-exact <repo> — declare the root in elections.json if missing, render, link. The engine under discover; idempotent, refuses reserved scope names, multicast scope names and non-repos.
+# Onboard a repo non-interactively: discover-exact <repo>, its folder name, found in the dev roots — declare the root in elections.json if missing, render, link. The engine under discover; idempotent, refuses reserved scope names, multicast scope names and non-repos.
 [group('scope')]
 discover-exact repo:
     @bash scripts/discover-core.sh {{repo}}
 
-# Link a repo-targeted scope: tree mode (default) symlinks $FORGE_DEV_ROOT/<repo>/.claude/skills (default ~/dev) at the rendered home/claude/repos/<repo>/skills tree, once; per-skill mode (elections.json linkModes) keeps that directory repo-owned and maintains one symlink per elected skill — re-run after election changes. Refuses rather than overwrite anything it doesn't own.
+# Link a repo-targeted scope: tree mode (default) symlinks <repo>/.claude/skills, the repo found by folder name in the dev roots, at the rendered home/claude/repos/<repo>/skills tree, once; per-skill mode (elections.json linkModes) keeps that directory repo-owned and maintains one symlink per elected skill — re-run after election changes. Refuses rather than overwrite anything it doesn't own.
 [group('scope')]
 link repo:
     @bash scripts/link.sh {{repo}}
+
+# Print where the hub is and the dev roots: the folders searched for your other repos, with the git repos in each and where the list comes from (devRoots in elections.json, $FORGE_DEV_ROOT, or the ~/dev default). Read-only.
+[group('scope')]
+dev-roots:
+    @bash scripts/dev-roots.sh
+
+# Add a folder to the dev roots: dev-root-exact <dir>. A second argument of - removes it. Writes devRoots in elections.json; a folder under your home is stored as ~/… so the manifest works on another machine. A repo is found by folder name in the first root that holds it.
+[group('scope')]
+dev-root-exact dir remove='':
+    @bash scripts/dev-roots.sh "{{dir}}" {{remove}}
 
 # Stamp the sssf-suite into a repo under $FORGE_DEV_ROOT, fzf-picked: stamp [repo] [version]. Needs a terminal — see stamp-exact.
 [group('release')]
@@ -131,7 +141,7 @@ playground version='':
 lab:
     #!/usr/bin/env bash
     set -euo pipefail
-    source scripts/env.sh # cd to the descendant's forge/
+    source scripts/env.sh # cd to the hub's forge/
     lab_file=kegs/sssf-suite/.lab
     lab=
     [[ -f "$lab_file" ]] && lab=$(tr -d '[:space:]' <"$lab_file")

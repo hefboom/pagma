@@ -5,13 +5,15 @@
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 # The heredoc below is python's stdin, so the render dump travels by env, not pipe.
-FORGE_JSON="$(bun run "$ENGINE/scripts/render.ts" --json)" FORGE_DEV_ROOT="${FORGE_DEV_ROOT:-$HOME/dev}" python3 - <<'PY'
+FORGE_JSON="$(bun run "$ENGINE/scripts/render.ts" --json)" FORGE_DEV_ROOTS="$(forge_dev_roots)" python3 - <<'PY'
 import json, os, re, subprocess, sys
 from pathlib import Path
 
 forge = Path.cwd()
 dotfiles = forge.parent
-dev = Path(os.environ["FORGE_DEV_ROOT"])
+devs = [Path(p) for p in os.environ["FORGE_DEV_ROOTS"].split("\n") if p]
+def repo_dir(name):  # the first dev root that holds the repo, as env.sh's forge_repo_dir
+    return next((d / name for d in devs if (d / name).is_dir()), devs[0] / name)
 data = json.loads(os.environ["FORGE_JSON"])
 
 SPAN = re.compile(r"`([^`]*)`")
@@ -51,7 +53,7 @@ for s in data["skills"]:
             if fpath:
                 target = Path(os.path.expanduser(fpath)); cls_anchor = target
             elif s["scope"] in ("hub", "dotfiles"): target = dotfiles / "justfile"; cls_anchor = target
-            elif s["scope"] != "global": target = dev / s["scope"] / "justfile"; cls_anchor = target
+            elif s["scope"] != "global": target = repo_dir(s["scope"]) / "justfile"; cls_anchor = target
             else: target = None; cls_anchor = None
             if target is not None and target.is_dir(): target = target / "justfile"
             cls = "unanchored" if target is None else ("same-repo" if dotfiles in cls_anchor.parents or cls_anchor == dotfiles else "cross-repo")
@@ -74,7 +76,7 @@ for s in data["skills"]:
             if recipe is None: continue
             rows.add((s["label"], tshow, recipe, cls, check))
     for e in s.get("engines", []):  # a declared floor: provided by the target repo's stamp, checked against its receipt
-        repo = dotfiles if s["scope"] in ("hub", "dotfiles") else dev / s["scope"] if s["scope"] != "global" else None
+        repo = dotfiles if s["scope"] in ("hub", "dotfiles") else repo_dir(s["scope"]) if s["scope"] != "global" else None
         receipt = None if repo is None else repo / ".claude" / "skills" / f"{e['suite']}.receipt.json"
         if receipt is None: check = "unchecked"
         elif not receipt.exists(): check = "no-receipt"

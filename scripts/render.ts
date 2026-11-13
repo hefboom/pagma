@@ -125,6 +125,9 @@ interface Manifest {
   /** The engine version this manifest was written against (`v0.0.1`), checked at
       every run against the engine's own VERSION file: a hub pins pagma. */
   engine?: string;
+  /** The folders that hold the person's other repos; a leading `~` is the home
+      directory. Absent means `~/dev`. Written by `just forge dev-root-exact`. */
+  devRoots?: string[];
   harnesses: Record<string, Harness>;
 }
 
@@ -221,20 +224,30 @@ function readReceipt(file: string, suite: string): Pick<Subscriber, "version" | 
   return { version: r.version, peers };
 }
 
-/** `$FORGE_DEV_ROOT` with the shell scripts' `~/dev` default. */
-function devRoot(): string {
-  return process.env.FORGE_DEV_ROOT ? path.resolve(process.env.FORGE_DEV_ROOT) : path.join(os.homedir(), "dev");
+/** The dev roots, in env.sh's order: `$FORGE_DEV_ROOT` alone when set, else the
+    manifest's `devRoots`, else `~/dev`. */
+function devRoots(): string[] {
+  if (process.env.FORGE_DEV_ROOT) return [path.resolve(process.env.FORGE_DEV_ROOT)];
+  const listed = (JSON.parse(fs.readFileSync(MANIFEST, "utf8")) as Manifest).devRoots ?? [];
+  if (listed.length === 0) return [path.join(os.homedir(), "dev")];
+  return listed.map((r) => (r === "~" || r.startsWith("~/") ? path.join(os.homedir(), r.slice(1)) : path.resolve(r)));
+}
+
+/** One repo's directory by folder name: the first dev root that holds it. */
+function repoDir(repo: string): string {
+  const roots = devRoots();
+  return roots.map((r) => path.join(r, repo)).find((d) => fs.existsSync(d)) ?? path.join(roots[0], repo);
 }
 
 /** A multicast scope's group: every declared root (bar `global`) whose repo dir holds
-    the suite's receipt. Repo dir resolution is link.sh's — `$FORGE_DEV_ROOT/<repo>`,
+    the suite's receipt. Repo dir resolution is link.sh's — the first dev root holding `<repo>`,
     `hub` (or its older name `dotfiles`) the forge's own repo. Symlinked repo dirs are skipped, so a compat link
     to a real dir never renders it twice. */
 function subscribers(h: Harness, scope: string, suite: string): Subscriber[] {
   const out: Subscriber[] = [];
   for (const [repo, root] of Object.entries(h.roots)) {
     if (repo === "global" || repo === scope) continue;
-    const dir = repo === "hub" || repo === "dotfiles" ? repoRoot() : path.join(devRoot(), repo);
+    const dir = repo === "hub" || repo === "dotfiles" ? repoRoot() : repoDir(repo);
     if (!fs.existsSync(dir) || fs.lstatSync(dir).isSymbolicLink()) continue;
     const receipt = path.join(dir, ".claude", "skills", `${suite}.receipt.json`);
     if (!fs.existsSync(receipt)) continue;
@@ -1089,18 +1102,22 @@ function aggregateLive(states: string[]): string {
 
 /** Repos holding a multicast suite's receipt that have no declared root — not
     subscribers, so no row; narration only. Same listing discover.sh reads: git repos one
-    level under the dev root, symlinks skipped. */
+    level under each dev root, symlinks skipped, a name counted once. */
 function undeclaredReceipts(manifest: Manifest): string[] {
   const out: string[] = [];
-  const dev = devRoot();
-  if (!fs.existsSync(dev)) return out;
+  const devs = devRoots().filter((d) => fs.existsSync(d));
   for (const h of Object.values(manifest.harnesses)) {
     for (const suite of new Set(Object.values(h.multicast ?? {}))) {
-      for (const e of fs.readdirSync(dev, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-        if (!e.isDirectory() || h.roots[e.name] !== undefined) continue;
-        const dir = path.join(dev, e.name);
-        if (!fs.existsSync(path.join(dir, ".git")) || !fs.existsSync(path.join(dir, ".claude", "skills", `${suite}.receipt.json`))) continue;
-        out.push(`${e.name} carries a ${suite} receipt but no root — just forge discover-exact ${e.name} to subscribe`);
+      const seen = new Set<string>();
+      for (const dev of devs) {
+        for (const e of fs.readdirSync(dev, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+          if (!e.isDirectory() || seen.has(e.name)) continue;
+          seen.add(e.name);
+          if (h.roots[e.name] !== undefined) continue;
+          const dir = path.join(dev, e.name);
+          if (!fs.existsSync(path.join(dir, ".git")) || !fs.existsSync(path.join(dir, ".claude", "skills", `${suite}.receipt.json`))) continue;
+          out.push(`${e.name} carries a ${suite} receipt but no root — just forge discover-exact ${e.name} to subscribe`);
+        }
       }
     }
   }

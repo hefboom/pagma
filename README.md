@@ -33,11 +33,12 @@ body of work. They deserve a place where they are kept, versioned and improved f
 | copies drift between repos | one source per skill, in the hub. A repo does not hold a copy: it links to output built from that source, so there is nothing to keep in sync |
 | global skills bloat the context | aim a skill at one repo and only sessions in that repo load it. Global is for what you want everywhere |
 | a new version might be worse | every version stays on disk in its own folder. Making another one live, newer or older, is one command |
-| testing on another model or effort | a skill names a tier (`lightweight`, `workhorse`, `sota`), not a model. Move one skill to another tier with one command, or change what a tier means for all of them in one place |
-| the agent manages skills at random | every action is a command with exact arguments, built for an agent to run, and `/prime-forge` teaches your agent the whole system in one step |
+| a variation means one more copy | a skill names a tier, not a model: `lightweight`, `workhorse` or `sota` (state of the art). Move one skill to another tier with one command, or change what a tier means for all of them in one place. A variation in the text or the tools is a new version beside the old one, and switching between the two is that same one command |
 
-I lean on AI to write my skills, so mistakes had to be cheap: nothing is overwritten, and
-the version that worked is always one command away.
+I lean on AI to write my skills, so mistakes had to be cheap: no version is ever
+overwritten, and the one that worked is always one command away. Every action is a
+command with exact arguments, built for an agent to run, and `/prime-forge` teaches your
+agent the whole system in one step.
 
 ## Install
 
@@ -50,6 +51,9 @@ Install pagma here: read and follow https://github.com/hefboom/pagma/blob/main/I
 
 Or clone this repo and type `/pagma-install` in Claude Code inside it. That way it asks
 where the hub should live and suggests `~/pagmas-descendant`.
+
+On Windows it runs natively through Git Bash, which Claude Code already uses there. One
+part is missing: aiming a skill at a single repo. See [Status](#status).
 
 The agent shows you a plan and waits for your go-ahead before it changes anything. Then it:
 
@@ -67,7 +71,7 @@ Build the hub yourself. You need `bun`, `just`, `jq`, `fzf` and `git`:
 
 ```bash
 mkdir pagmas-descendant && cd pagmas-descendant && git init && git commit --allow-empty -m init
-git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.32 --squash
+git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.33 --squash
 bash forge/engine/scripts/init.sh          # manifest, starter set, justfile, first render
 just forge status                          # one row per election, LIVE column says ok
 ln -s "$PWD/home/claude/skills" ~/.claude/skills    # and the same for agents and tools
@@ -80,11 +84,9 @@ mkdir -p .claude && ln -s "$PWD/home/claude/repos/hub/skills" .claude/skills    
 
 ## Using it
 
-The workflow is short. In any repo:
-
-1. Run `/prime-forge`. Your agent now knows how the hub works, what is live, and how the
-   hub relates to your other repos.
-2. Ask for what you want.
+The workflow is short: when the work turns to skills, in any repo, run `/prime-forge`
+and ask for what you want. Your agent then knows how the hub works, what is live, and
+how the hub relates to your other repos.
 
 A good moment is a tedious step you keep doing by hand, or one the agent does differently
 every time. Committing, for example. Commit the way you like it a few times, then:
@@ -98,15 +100,34 @@ The agent writes the skill into the hub as `v1.0.0` and makes it live; your next
 has it. Want a change? It writes `v1.0.1` beside the first and switches to it. Turned out
 worse? Tell it to go back, and `v1.0.0` is live again. Both versions stay on disk.
 
-Everything the agent does, you can do by hand with a picker. Try it once: you will know
-what your agent can do because you have done it yourself.
+The command to know first is `just forge status`. It prints what is live, one row each,
+and the LIVE column says whether the folders your harness reads still match:
+
+```text
+ELECTION                              VERSION  NEWER  TIER         SOURCE       MODEL   EFFORT               LIVE
+claude-code/global/hello              v1.0.0   -      lightweight  frontmatter  haiku   high                 ok
+claude-code/global/systems-architect  v1.0.0   -      sota         frontmatter  opus    xhigh (frontmatter)  ok
+claude-code/global/prime-forge        v1.0.0   -      lightweight  frontmatter  haiku   high                 ok
+claude-code/tools/doc-section         v1.0.0   -      -            -            -       -                    ok
+```
+
+Column 1 is the label every other command takes. Everything the agent does, you can do
+by hand with a picker. Try it once: you will know what your agent can do because you
+have done it yourself.
 
 | By hand | What an agent runs | Does |
 |---|---|---|
+| `just forge status` | the same | lists what is live: version, tier, model, and whether the output still matches |
 | `just forge view` | `just forge show <label>` | shows one skill: its versions, which is live, its tier |
 | `just forge elect` | `just forge elect-exact <label> <version>` | makes a version live |
 | `just forge move` | `just forge move-exact <label> <scope>` | moves a skill between global and one repo |
 | `just forge retire` | `just forge retire-exact <label>` | takes a skill out of service and keeps its versions |
+| | `just forge tier-exact <label> <tier>` | runs a skill on another tier, with no new version |
+| `just forge discover` | `just forge discover-exact <repo>` | connects one of your repos to the hub, so that skills can be aimed at it |
+| `just forge dev-roots` | `just forge dev-root-exact <folder>` | shows where the hub is and which folders it searches for your repos, or adds a folder |
+
+The hub finds a repo by its folder name. It looks in `~/dev` until you name the folder,
+or folders, your projects really live in: `just forge dev-root-exact ~/code`.
 
 ### Starter set
 
@@ -120,7 +141,7 @@ it, retire it.
 | `hello` | skill | the smoke test: one line that proves the hub works end to end |
 | `pagma-update`, `pagma-uninstall` | skills, hub only | the two procedures, as skills in your own cellar. They are scoped to the hub, so they load only in a session opened there |
 | `doc-section` | tool | reads one section of a markdown file by its heading. `prime-forge` uses it to load only the parts of `AUTHORING.md` it needs |
-| `lightweight`, `workhorse`, `sota` | agents | nothing but a model tier: spawn one to run a prompt, or a named skill, on that tier |
+| `lightweight`, `workhorse`, `sota` | agents | nothing but a model tier, small to state of the art: spawn one to run a prompt, or a named skill, on that tier |
 | `lightweight-ro`, `workhorse-ro`, `sota-ro` | agents | the same three with the editing tools removed: they report and never change files |
 
 ## How it works
@@ -140,6 +161,11 @@ matches. The storage idea is Homebrew's Cellar; the build step is a compiler's.
 
 A skill in the `global` scope reaches every session. A skill scoped to one repo is
 rendered for that repo alone, and the repo holds a single link to it.
+
+One consequence to know before you start: `~/.claude/skills` is now a link to output
+that render owns. A skill dropped straight into it is not on the manifest, so the next
+render removes it. New skills go into the hub, which is what `/prime-forge` teaches your
+agent to do.
 
 [`AUTHORING.md`](./AUTHORING.md) has the whole model: layout, tiers, tools, agents,
 naming, and the commands for each step.

@@ -24,9 +24,8 @@ if [[ ! -d "$target" ]]; then
   exit 1
 fi
 
-repo_dir=${FORGE_DEV_ROOT:-$HOME/dev}/$repo
-if [[ ! -d "$repo_dir" ]]; then
-  echo "no repo at $repo_dir (FORGE_DEV_ROOT overrides the ~/dev default)" >&2
+if ! repo_dir=$(forge_repo_dir "$repo"); then
+  forge_no_repo "$repo"
   exit 1
 fi
 

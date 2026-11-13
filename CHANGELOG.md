@@ -3,6 +3,12 @@
 One entry per tag. A `manifest:` line is a change a descendant's `forge/elections.json`
 needs by hand when crossing that version — `UPDATE.md` applies them in order.
 
+## v0.1.33
+- More than one project folder. The hub found a repo only under `~/dev`, or under the one folder `$FORGE_DEV_ROOT` named. It now searches a list, the dev roots, kept in the manifest as `devRoots`. `just forge dev-roots` prints where the hub is and the roots; `just forge dev-root-exact <dir>` adds a folder, and with `-` after it removes one. A repo is found by folder name in the first root that holds it. With no list the default is still `~/dev`, and `$FORGE_DEV_ROOT` still wins when set.
+- `README.md`: `just forge status` leads the command table, with a sample of its output; the table gains the tier, discover and dev-roots commands; Windows limits are stated at the install; it says that render owns `~/.claude/skills` and removes what the manifest does not list; `sota` is spelled out as state of the art.
+- The `init` recipe's comment and `scripts/README.md` say *hub*, which v0.1.32 left undone.
+- manifest: none. `devRoots` is optional and written by the verb.
+
 ## v0.1.32
 - One word for the repo your skills live in: *hub*. The docs, the plan the install shows, the starter skills and the scripts' messages said *descendant*. That word stays in three places: the suggested folder name `~/pagmas-descendant`, the ledger's `descendant` line, and the `examples/descendant/` path. *Rare book* is gone; the scaffold is the template.
 - The template repo `hefboom/pagmas-descendant` is retired. It duplicated `examples/descendant/`, and neither install path used it.

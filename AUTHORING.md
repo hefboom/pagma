@@ -12,7 +12,7 @@ Every command runs from the hub's root. From anywhere else it is
 
 | Path | What it holds |
 |---|---|
-| `forge/elections.json` | the manifest: which version of each skill, agent and tool is live, and where it renders |
+| `forge/elections.json` | the manifest: which version of each skill, agent and tool is live, where it renders, and which folders hold your other repos |
 | `forge/skills/{scope}/{name}/v{X.Y.Z}/SKILL.md` | the skills cellar: every version ever written |
 | `forge/agents/{name}/v{X.Y.Z}/AGENT.md` | the agents cellar |
 | `forge/tools/{name}/v{X.Y.Z}/` | the tools cellar: scripts that several skills call |
@@ -59,7 +59,7 @@ models can be swapped in one place without touching a skill.
 |---|---|
 | `lightweight` | Haiku, effort high |
 | `workhorse` | Sonnet, effort high |
-| `sota` | Opus, effort high |
+| `sota` | Opus, effort high. The name is short for *state of the art*: the strongest model you have |
 | `session` | no model at all: the skill runs on whatever the session is using |
 
 - No `tier:` line means the manifest's `defaultTier`.
@@ -171,10 +171,14 @@ table prints, and exits 0, with a broken election in it.
 |---|---|
 | `global` | every session: `home/claude/skills/` |
 | `hub` | sessions opened in the hub itself: `home/claude/repos/hub/skills/`, which the hub's own `.claude/skills` links to. `/pagma-update` and `/pagma-uninstall` live here |
-| a repo's folder name | that repo only. `just forge discover-exact <repo>` sets it up in one step for a repo under `$FORGE_DEV_ROOT` (default `~/dev`): it declares the root in the manifest, renders, and makes the one link the repo needs |
+| a repo's folder name | that repo only. `just forge discover-exact <repo>` sets it up in one step: it declares the root in the manifest, renders, and makes the one link the repo needs. The repo is found by folder name in the dev roots (below) |
 | `keg-only` | nowhere. The versions are kept and nothing is rendered |
 
 - The output tree is real directories. A link inside it was put there by hand.
+- The **dev roots** are the folders the hub searches for the person's other repos: `~/dev`
+  until the manifest's `devRoots` lists others. `just forge dev-roots` prints the hub's
+  path and the roots. `just forge dev-root-exact <dir>` adds a folder, and with `-` after
+  it removes one. A repo that `discover-exact` cannot find needs its parent folder added.
 
 ## Frontmatter
 

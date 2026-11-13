@@ -12,7 +12,7 @@ touch the cellar, a `git mv` between scope dirs — with `move.sh` its fzf front
 `verbs.sh` is the lexicon's human render — the short twin of `just --list forge`.
 `link.sh` is the one-time bootstrap for repo-targeted scopes, and
 `discover-core.sh` the onboarding engine that composes root declaration + render +
-link (with `discover.sh` its fzf front end scanning `$FORGE_DEV_ROOT`).
+link (with `discover.sh` its fzf front end scanning the dev roots).
 Everything the legacy symlink machinery used to do is on the `archive/forge-legacy`
 branch — [../README.md § History](../README.md#history).
 
@@ -24,15 +24,15 @@ For the cellar/render model this implements, see [`../README.md`](../README.md).
 
 ## `init.sh`
 
-The rare book. Scaffolds a descendant around this engine, once, before `just forge`
+Scaffolds a hub around this engine, once, before `just forge`
 exists in the new repo — so it is run directly: `bash forge/engine/scripts/init.sh`
 (the `init` recipe is the same script for an engine already mounted). Target is
 `$FORGE_ROOT`, else the engine's grandparent (the engine must sit at
-`<descendant>/forge/engine/`). Checks the prerequisites (bun, just, jq, fzf, python3),
+`<hub>/forge/engine/`). Checks the prerequisites (bun, just, jq, fzf, python3),
 refuses an existing `forge/elections.json`, copies `../examples/descendant/` in without
 overwriting anything that exists (a kept file is reported with the template to merge
 from), rewrites the copied manifest's `engine` pin from `../VERSION`, runs `bun install`
-in the engine and a first render. Writes nothing outside the descendant — linking
+in the engine and a first render. Writes nothing outside the hub — linking
 `~/.claude/*` at the bin trees is the operator's step, printed as the next action.
 
 ## `render.ts`
@@ -154,14 +154,14 @@ from the manifest-structure error above.
 
 **Subscribers.** A subscriber is every key of `roots` except `global` and the scope's own
 name whose repo dir holds `.claude/skills/<suite>.receipt.json`. The repo dir is
-`$FORGE_DEV_ROOT/<repo>` (default `~/dev`, as in the shell scripts), except `dotfiles`,
+the first dev root that holds `<repo>` ([`dev-roots.sh`](#dev-rootssh)), except `hub` (older name `dotfiles`),
 which is the forge's own repo root; a symlinked repo dir is skipped, so a compat link
 never renders a repo twice. A receipt that is not JSON, names another suite, carries no
 `vX.Y.Z` version, or carries a `peers` value that is not a map of skill name to
 `">=X.Y.Z"` is a per-placement `error` naming the file; every other placement is
 unaffected in `--status`, `--json` and `--check`. The live `render` is fail-fast, so there
 a bad receipt aborts the pass — and `elect-exact`'s shadow render refuses — until that
-repo is re-stamped. A receipt-bearing repo under `$FORGE_DEV_ROOT` with no declared root is not a
+repo is re-stamped. A receipt-bearing repo under a dev root with no declared root is not a
 subscriber: `--status` prints one stderr line per such repo
 (`<repo> carries a sssf-suite receipt but no root — just forge discover-exact <repo> to
 subscribe`) and no row.
@@ -247,10 +247,10 @@ dump present it exits non-zero pointing at `just forge show`.
 elected skill's cellar body, as SKILL · TARGET · RECIPE · CLASS · CHECK. Derived, not
 declared — the same posture as `verbs.sh`: the ledger *is* the text, so it cannot drift
 from it, and it covers every immutable version without a bump. Bridge-layer script
-(reads `$FORGE_DEV_ROOT`, default `~/dev`); render.ts stays hermetic.
+(reads the dev roots); render.ts stays hermetic.
 
 Resolution: a backtick span containing `just`, optionally `-f <path>`, then bare words.
-TARGET is the `-f` path when given, else the scope's repo (`$FORGE_DEV_ROOT/<scope>`,
+TARGET is the `-f` path when given, else the scope's repo (found by folder name in the dev roots,
 or dotfiles for the `dotfiles` scope), else `cwd` for a global skill with no anchor.
 RECIPE is `module::recipe` when the first word names a module in that justfile's dump.
 CLASS is `same-repo` when target and cellar share the dotfiles history, `cross-repo`
@@ -402,8 +402,7 @@ terminal, refusing up front without one.
 ## `discover-core.sh`
 
 `just forge discover-exact <repo>`. The repo-onboarding engine: takes one exact repo
-basename, looks it up under `$FORGE_DEV_ROOT/<repo>` (default `~/dev` — the dev root
-is a machine-level fact, so it lives in an env var, never the committed manifest),
+basename, looks it up by folder name in the dev roots ([`dev-roots.sh`](#dev-rootssh)),
 declares its root in `elections.json` when the manifest lacks one
 (`home/claude/repos/<repo>/skills`), re-renders (render materializes the empty root),
 and delegates to `link.sh` for the symlink. The manifest write is skipped when the root is already declared — the
@@ -422,15 +421,15 @@ missing repo dir, a directory with no `.git`, or anything `link.sh` refuses.
 ## `discover.sh`
 
 `just forge discover [query]`. The fzf front end over `discover-core.sh`: scans
-`$FORGE_DEV_ROOT` for git repos and annotates each with its manifest/link state —
+the dev roots for git repos and annotates each with its manifest/link state —
 `(new)` (no root declared), `(declared, unlinked)` (root in the manifest, no local
 symlink), `(mislinked)` (an existing `.claude/skills` that is not the expected
 symlink; the engine surfaces `link.sh`'s refusal), or `(linked)` (fully served,
 kept visible as an overview; picking one is a no-op success) — and hands the pick's
-exact basename to the engine; it resolves intent and writes nothing itself. With no git repos under the dev root it says so and
+exact basename to the engine; it resolves intent and writes nothing itself. With no git repos under any dev root it says so and
 exits clean. The argument seeds the query and auto-selects on a unique match.
-Requires a terminal (`/dev/tty`), same posture as `elect.sh`. Errors if the dev root
-(`$FORGE_DEV_ROOT`, default `~/dev`) doesn't exist.
+Requires a terminal (`/dev/tty`), same posture as `elect.sh`. A dev root
+that is not on this machine is skipped.
 
 ## `link.sh`
 
@@ -441,7 +440,7 @@ writes outside dotfiles — the symlinks are the only thing that lives in the ta
 repo, and this is the only script that touches one. Two modes:
 
 **`tree`** (the default, `linkModes` entry absent) — one-time: symlinks
-`$FORGE_DEV_ROOT/<repo>/.claude/skills` (default `~/dev`) at the rendered
+`<repo>/.claude/skills`, the repo found by folder name in the dev roots, at the rendered
 `home/claude/repos/<repo>/skills` tree. Forge owns the whole directory. Idempotent: an
 already-correct symlink is a no-op success. Refuses (non-zero, never deletes) on an
 existing `.claude/skills` that is anything other than the expected symlink. Prints a
@@ -463,6 +462,36 @@ entry forge does not own (a real dir/file, or a symlink pointing elsewhere).
 
 Both modes refuse on a repo with no root in the manifest (declared repo roots
 listed), a missing repo dir, or an unrendered root.
+
+## `dev-roots.sh`
+
+`just forge dev-roots` and `just forge dev-root-exact <dir> [-]`. The dev roots are the
+folders that hold the person's other repos; a repo-targeted scope is named after a
+folder, and every script that needs that folder asks the same two functions in `env.sh`.
+
+| Function | Gives |
+|---|---|
+| `forge_dev_roots` | the roots, one per line: `$FORGE_DEV_ROOT` alone when it is set, else the manifest's top-level `devRoots` list, else `~/dev` |
+| `forge_repo_dir <name>` | the first root that holds a folder of that name; fails when none does |
+
+`render.ts` has the same pair (`devRoots()`, `repoDir()`) for the multicast pass. A
+folder name present in two roots resolves to the first; `discover.sh` lists it once.
+
+With no argument the script prints the hub and each root: how many git repos it holds,
+or that it is not on this machine, and which of the three sources the list came from.
+With a directory it adds that folder to `devRoots`; with `-` after it, removes it. A
+folder under the home directory is stored as `~/…`, so one committed manifest serves
+machines with different user names; a root that a machine lacks is skipped. The first
+folder added keeps `~/dev` in the list when `~/dev` exists, so adding never drops the
+default the person was using. Removing the last entry deletes the key, which is the
+default again. Each write re-renders: a new root can bring multicast subscribers into
+view.
+
+The list sits in the manifest and not in an environment variable because a verb cannot
+set a variable for later shells, and a session started outside a login shell would not
+see one. `$FORGE_DEV_ROOT` stays as the per-machine override. The release scripts
+(`stamp*.sh`, `harvest-*.sh`, `playground.sh`) still read `$FORGE_DEV_ROOT` with the
+`~/dev` default and do not consult the list.
 
 ## `keg-core.sh`
 

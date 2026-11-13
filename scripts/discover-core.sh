@@ -6,7 +6,6 @@ set -euo pipefail
 source "$(dirname "$0")/env.sh"
 
 MANIFEST=elections.json
-dev_root=${FORGE_DEV_ROOT:-$HOME/dev}
 
 if [[ $# -ne 1 ]]; then
   echo "usage: discover-core.sh <repo>   e.g. discover-core.sh hefboom-ops" >&2
@@ -25,9 +24,8 @@ if jq -e --arg r "$repo" '(.harnesses["claude-code"].multicast // {}) | has($r)'
   exit 1
 fi
 
-repo_dir=$dev_root/$repo
-if [[ ! -d "$repo_dir" ]]; then
-  echo "no repo at $repo_dir (FORGE_DEV_ROOT overrides the ~/dev default)" >&2
+if ! repo_dir=$(forge_repo_dir "$repo"); then
+  forge_no_repo "$repo"
   exit 1
 fi
 if [[ ! -e "$repo_dir/.git" ]]; then
