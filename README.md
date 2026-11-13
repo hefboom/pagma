@@ -41,13 +41,31 @@ shadow tree and byte-diffs it against the live bin trees, failing on any hand ed
 missing version or orphan. Run it in CI or as a pre-commit hook and the manifest is
 provably what is live.
 
-## Quickstart — make a descendant
+## Quickstart
 
-Prerequisites: `bun`, `just`, `jq`, `fzf`, `python3`, `git`.
+**With a coding agent** (Claude Code, Codex, any harness that can read a URL and run a
+shell). Open it in the directory that should hold your prompts, empty or not, and paste:
+
+```
+Install pagma here: read and follow https://github.com/hefboom/pagma/blob/main/INSTALL.md
+```
+
+[`INSTALL.md`](./INSTALL.md) is written for the agent: it installs what is missing,
+mounts the engine, scaffolds the descendant, links the harness and reports. Nothing in it
+touches your `~/.claude` without asking when something is already there.
+
+**Without one**, start from the template: [github.com/hefboom/pagma-descendant](https://github.com/hefboom/pagma-descendant)
+→ *Use this template* → clone it. It is a descendant with the engine already mounted;
+then `just forge install && just forge render` and the one symlink below.
+
+<details>
+<summary>The steps by hand</summary>
+
+Prerequisites: `bun`, `just`, `jq`, `fzf`, `python3`, `git` (per-OS commands in `INSTALL.md`).
 
 ```bash
 mkdir my-prompts && cd my-prompts && git init && git commit --allow-empty -m init
-git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.0 --squash
+git subtree add --prefix forge/engine https://github.com/hefboom/pagma.git v0.1.1 --squash
 bash forge/engine/scripts/init.sh          # the rare book: manifest, cellar, justfile, first render
 just forge status                          # one row per election, LIVE column says ok
 ```
@@ -56,6 +74,8 @@ just forge status                          # one row per election, LIVE column s
 `hello` skill and the `shim` agent into your cellar, and renders them into `home/claude/`.
 Point the harness at the bin trees once — `ln -s $PWD/home/claude/skills ~/.claude/skills`,
 same for `agents/` — and `/hello` exists in your next session. It never touches `~` itself.
+
+</details>
 
 From there the loop is:
 
@@ -68,6 +88,8 @@ just forge render --check                                                   # dr
 
 Try it without a repo: `FORGE_ROOT=$PWD/examples/descendant just render --check` from
 this checkout renders the example in place.
+
+Supported: macOS and Linux. Windows through WSL2 until the shell layer is gone (v2).
 
 ## Layout of a descendant
 

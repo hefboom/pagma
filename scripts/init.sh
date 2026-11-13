@@ -24,6 +24,7 @@ missing=()
 for t in bun just jq fzf python3; do command -v "$t" >/dev/null 2>&1 || missing+=("$t"); done
 if (( ${#missing[@]} )); then
   echo "forge init: missing prerequisites: ${missing[*]} (bun runs the renderer, just the verbs, jq the manifest edits, fzf the pickers, python3 the edge ledger)" >&2
+  echo "  install them, or hand INSTALL.md to a coding agent: $ENGINE/INSTALL.md" >&2
   exit 1
 fi
 
